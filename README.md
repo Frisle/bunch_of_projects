@@ -1,4 +1,4 @@
 # Code-projects
 
-#this is code learning project buils simple vocabulary test <br>
-goal is to create fully functional test for advanced language learning
+#this is code learning project buils simple scriptes for task at hand <br>
+Here  i have vocabulory quiz, password generator, pricetag creator, file name reader
