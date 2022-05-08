@@ -1,4 +1,4 @@
-import csv
+from openpyxl import Workbook, load_workbook
 import os
 import subprocess
 import threading
@@ -7,7 +7,8 @@ from tkinter import *
 from tkinter import Frame, messagebox
 from tkinter.ttk import *
 import pyperclip
-import xlsxwriter
+#import xlsxwriter
+import keyboard
 
 helpText = """ 
 Работа программы основана на использовании таблиц Excell и взаимодействию
@@ -31,15 +32,17 @@ helpText = """
 cardsfilepath = os.path.join(os.getcwd(), 'assets/cardsFile.txt')
 pathToServer  = os.path.join(os.getcwd(), 'assets/launch.exe')
 filepathList = os.path.join(os.getcwd(), 'assets/list.txt')
-readMeFile = os.path.join(os.getcwd(), 'assets/README')
+readMeFile = os.path.join(os.getcwd(), 'assets/README.txt')
 autoListFile = os.path.join(os.getcwd(), 'assets/auto_list.txt')
 CSVFilePath = os.path.join(os.getcwd(), "assets/testCsvFile.csv")
+tempxlsx = os.path.join(os.getcwd(), "assets/temp.xlsx")
+
 
 try:
 	f = open(cardsfilepath, "r")
 	f1 = open(filepathList, "r")
 	f2 = open(autoListFile, "r")
-	f3 = open("temp.xlsx", "r")
+	f3 = open(tempxlsx, "r")
 except FileNotFoundError:
 	f = open(cardsfilepath, "w")
 	f.close()
@@ -47,26 +50,26 @@ except FileNotFoundError:
 	f1.close()
 	f2 = open(autoListFile, "w")
 	f2.close()
-	f3 = open("temp.xlsx", "w")
+	f3 = open(tempxlsx, "w")
 	f3.close()
 else:
     	None
 
 
+class filteredString():
 
+	def clean(self, str):
+		self.filtered = " "
+		for sym in str:
+			if sym != "'" and sym != "[" and sym != "]":
+				self.filtered += sym
+				
+		return self.filtered
+	
+		
 
+v = filteredString()
 
-try:
-	file = open(CSVFilePath, "r", encoding="utf-8")
-	file.close()
-except FileNotFoundError:
-	file = open(CSVFilePath, "w", encoding="utf-8")
-	writer = csv.writer(file)
-	header = ["Бренд", "Артикул", "Номер", "Тип", "Цена", "Материал", "Признак", "Цвет", "Метка", "Размеры"]
-	writer.writerow(header)
-	file.close()
-else:
-	None
 
 class ToolTip(object):
 
@@ -128,9 +131,11 @@ def main():#ведущая функция содержащая весь осно
 		fileList.truncate(0)
 		fileList.close()
 		textBoxRefresh()
+		comboBoxMod()
 		fileCards = open(cardsfilepath, "r+", encoding="utf-8")
 		fileCards.truncate(0)
 		fileCards.close()
+		
 
 
 	def openCardsFile():#открывает текстовый файл с записанными карточками
@@ -156,7 +161,7 @@ def main():#ведущая функция содержащая весь осно
 
 	
 		with open(filepathList, "r", encoding="utf-8") as f:
-			count = 0
+			
 			list1 = []
 			for line in f:
 				list1.append(line.split())
@@ -172,7 +177,7 @@ def main():#ведущая функция содержащая весь осно
 	
 #блок захвата буфера обмена и записи данных из таблиц Excell
 	def writeFromClipboard():#блок перезаписи листа и инициализации буфера обмена
-		lLabelForTimer.configure(text="Ввод активен")
+		b_clipboard_button.configure(text="Ввод активен")
 		try:
 			file = open(filepathList, "a", encoding="utf-8")
 			spam = pyperclip.waitForNewPaste(20)#получение днных из буфера и хранение
@@ -181,9 +186,10 @@ def main():#ведущая функция содержащая весь осно
 			file.write("{}".format(tempString))
 			file.close()
 			textBoxRefresh()
+			eListDisplayBox.see([0])
 		except Exception:
 			messagebox.showinfo("INFO","Ввод из буфера завершен")
-			lLabelForTimer.configure(text="Ввод неактивен")
+			b_clipboard_button.configure(text="Буфер обмена")
 			return
 			
 		
@@ -198,9 +204,21 @@ _________________________
 Цена: 
 
 
-<b>Размеры</b>: {}</p>"""
+<b>Размеры</b>: {}</p>\n"""
 
 	printTagM = """
+<div class=\"box\">{}
+___________
+Арт.: {} 
+№: <b class=\"bold"\>{}</b> 
+Мат.: {}
+Цена: 
+
+
+
+<p>{}</p></div>"""
+
+	emptyTag = """
 <p class=\"box\">Бренд: {}
 _________________________
 Арт.: {} / №: <b>{}</b> 
@@ -208,11 +226,9 @@ _________________________
 Цена: 
 
 
-"   ", "   ", "   ",</p>\n"""
 
-
-
-
+<b>"____, ____, ____, ____, ____, 
+____, ____, ____, ____, ____"</b></p>"""
 
 
 	def cardsFormat():	
@@ -229,15 +245,21 @@ _________________________
 				for x in filteredList:#основной блок извлекающий и сортирующий информацию из листа	
 					name = x[0]; article = x[1]; number = x[2]; shoeType = x[3]; price = x[4]; 
 					material = x[5]; collor = x[6]; features = x[7]; marker = x[8]; sizes = x[9:]
+					
+					
 					#логический блок конструирует карточки
-					if len(sizes) > 5 and len(sizes) < 8:
+					if len(sizes) > 6:
 						printSizes = "{}\n{}".format(str(x[9:14]), str(x[14:]))
-					elif len(sizes) > 12:
+						cleanSizes = v.clean(printSizes)
+					elif len(sizes) > 8:
 						printSizes = "{}\n{}\n{}".format(str(x[9:14]), str(x[14:20]), str(x[20:]))
+						cleanSizes = v.clean(printSizes)
 					elif len(sizes) == 1:
-						printSizes = "{}".format(str(x[9:])) 		
+						printSizes = "{}".format(str(x[9:])) 
+						cleanSizes = v.clean(printSizes)		
 					else:
 						printSizes = "{}".format(str(x[9:]))
+						cleanSizes = v.clean(printSizes)
 					if number == "нет":
 						printNumber = "{}".format(collor)
 					else:
@@ -247,7 +269,8 @@ _________________________
 						printName ="{}".format(features.capitalize())
 					else:
 						printName = "{}".format(name)
-					
+						cleanName = printName.replace(".", " ")
+						
 					if len(name) > 6:
 						printMaterial = "{}".format(material)
 					else:
@@ -257,24 +280,40 @@ _________________________
 						printArticul = "{}".format(features)
 					else:
 						printArticul = "{}".format(article)
-			
+					
 					file = open(cardsfilepath, "a", encoding="utf-8")#блок записи в файл
+					
+
 					if marker == "М": #маленькие карточки
-						printTag = str(printTagM).format(printName, printArticul, printNumber)
+						printTag = str(printTagM).format(cleanName, printArticul, printNumber, printMaterial, cleanSizes)
 						file.write(printTag)
 						file.close()
 						comboBoxMod()
 					elif marker == "Б":
-						printTag = str(printTagB).format(printName, printArticul, printNumber, printMaterial, printSizes)
+						printTag = str(printTagB).format(cleanName, printArticul, printNumber, printMaterial, cleanSizes)
 						file.write(printTag)
 						file.close
 						comboBoxMod()
 		except Exception:
 			messagebox.showerror("Ошибка ввода", "Список пуст или данные введены неверно")
-			return
+			return 
 	
 
-	def manualInput():#блок ручного ввода
+	
+
+	def emptyTags():
+		i = 0
+		while i < 20:
+			file = open(cardsfilepath, "a", encoding="utf-8")
+			printTag = str(emptyTag).format("_______", "___________", "_____", "_________")
+			file.write(printTag)
+			i += 1
+		Browser()
+			
+
+
+	#блок ручного ввода
+	def manualInput():
 		listOfData = []
 		inputDataName = str(eManualInputName.get())
 		inputDataArt = str(eManualInputArt.get())
@@ -321,11 +360,21 @@ _________________________
 		listOfData.append(mod_InputData)#лист для записи введеных данных с заменой пробелов на запятые
 		with open(filepathList, "a", encoding="utf-8") as FileRead:
 			FileRead.write(mod_InputData)
+		wb = load_workbook(tempxlsx)
+		sheet = wb.active
+		newDict = {"A" : inputDataName, "B" : inputDataArt, "C" : inputDataNum,
+            "D": inputDataType, "E": inputDataPrice, "F": inputDataMat, 
+            "G": inputDataCol, "H": inputDataFeat, "I": inputDataMark, "K": proccesedSizes}
+		sheet.append(newDict)
+		wb.save(tempxlsx)
+		wb.close()
 		comboBoxMod()
 		textBoxRefresh()
-	
+		eListDisplayBox.see("end")
+
 	#блок записи с автоматическим поиском и заменой строк
 	def searchWriteAndReplace():
+		writeInput_num.focus_set()
 		#если чек бокс = True функция меняет назначение на удаление данных из auto_list
 		if chk_state.get() == True:
 			file = open(autoListFile, "w", encoding="utf-8")
@@ -386,6 +435,9 @@ _________________________
 				newFile.write(rewriteValues)
 			quickWriteRefreshBox()
 			comboBoxMod()
+		WriteInput_art.delete(0, END)
+		writeInput_size.delete(0, END)
+		writeInput_num.delete(0, END)
 
 	def changeQuickWrite():
 		with open(autoListFile, "w", encoding="utf-8") as ReadFile:
@@ -404,7 +456,7 @@ _________________________
 		except UnboundLocalError:
 			messagebox.showerror("Ошибка ввода", "В одном из полей отсутствуют данные")
 		tempList = []
-		with open("auto_list.txt", "r", encoding="utf-8") as readFile:
+		with open(autoListFile, "r", encoding="utf-8") as readFile:
 			for line in readFile:
 				tempList.append(line.rsplit())
 				tempList.sort()
@@ -416,12 +468,12 @@ _________________________
 				sizes1 = " ".join(sorted(sizes))
 				with open(filepathList, "a", encoding="utf-8") as sortFile:
 					name = "{} {} {} нет 0 нет нет нет {} {}\n".format(name, art, number, marker, sizes1)
-					sortFile.write(name.replace("/", " "))		
+					sortFile.write(name)
 				textBoxRefresh()
 
 	#блок записи в excell
-	def excellWrite():
-		workbook = xlsxwriter.Workbook('temp.xlsx')
+	"""def excellWrite():
+		workbook = xlsxwriter.Workbook(tempxlsx)
 		worksheet = workbook.add_worksheet()
 
 		tempList = []
@@ -432,7 +484,7 @@ _________________________
 			for line in readFile:
 				tempList.append(line.rsplit())
 			for x in tempList:
-				art = x[1]; name = x[0]; number = x[2]; type = x[3]; price = x[4];
+				art = x[1]; name = x[0]; number = x[2]; type = x[3]; price = x[4]
 				material = x[5]; features = x[6]; collor = x[7]; marker = x[8]; sizes = x[9:]
 				sizes1.append(sizes)
 				worksheet.write(row, col, name); worksheet.write(row, col+1, art); 
@@ -442,21 +494,9 @@ _________________________
 				worksheet.write(row, col+8, marker); worksheet.write_row(row, 9, sizes)
 				row+=1
 		workbook.close()
-
-	def csvExport():
-		tempList = []
-		with open(filepathList, "r", encoding="utf-8") as readFile:
-			for line in readFile:
-				tempList.append(line.rsplit())
-				filteredList = list(filter(None, tempList))
-			for x in filteredList:
-				art = x[1]; name = x[0]; number = x[2]; type = x[3]; price = x[4];
-				material = x[5]; features = x[6]; collor = x[7]; marker = x[8]; sizes = x[9:]
-				sizes = " ".join(sizes)
-				with open(CSVFilePath, "a", encoding="utf-8") as toWrite:
-					writer = csv.writer(toWrite)
-					writer.writerow([name, art, number, type, price, material, collor, features, marker, sizes])
-
+		path_to_excell = r"C:\Program Files\Microsoft Office\root\Office16\EXCEL.exe"
+		subprocess.call([path_to_excell, tempxlsx])
+"""
 	
 	def helpWindow():
 		help = Toplevel()
@@ -471,15 +511,7 @@ _________________________
 		lLableForHelp.place(x = 10, y = 10)
 		
 
-	def CSVBrowser():
-		browser = Toplevel()
-		browser.title("CSV Браузер")
-		browser.geometry('1000x500+300+100')
-		browser.iconbitmap('assets/tag_icon.ico')
-		browser.resizable(False, False)
-
-		eWindowForCSVview = Text(browser, width=120, wrap=WORD, font='Arial 10', height=30)
-		eWindowForCSVview.pack()
+	
 
 
 	'''функции трединга'''
@@ -500,6 +532,11 @@ _________________________
 		thread3 = threading.Thread(target=searchWriteAndReplace)
 		thread3.start()
 
+	def excellExport():
+		thread4 = threading.Thread(target=0)
+		thread4.start()
+
+
 	'''Секция размещения виджетов/кнопок интерфейса'''
 
 	window = Tk()
@@ -513,6 +550,8 @@ _________________________
 	frame1 = Frame(window, relief="groove", borderwidth=10, width=490, height=420)
 	frame1.place(x=4, y=10) 
 
+
+
 	""" меню """
 
 	mainmenu = Menu(window)
@@ -522,7 +561,7 @@ _________________________
 	filemenu.add_command(label="Просмотр файла", command=openCardsFile)
 	filemenu.add_command(label="Перезапись", command=revriteFiles)
 	filemenu.add_command(label="Локальный сервер", command=ServerThreadFuncton)
-	filemenu.add_command(label="CSV Браузер", command=CSVBrowser)
+	
 	#filemenu.add_command(label="Выход")
 	
 	helpmenu = Menu(mainmenu, tearoff=0)
@@ -534,7 +573,7 @@ _________________________
 						menu=helpmenu)
 
 	'''файловый менеджмет'''
-	iconForCreate = PhotoImage(file="assets/createTag.png")
+	iconForCreate = PhotoImage(file="assets/create_tag.png")
 
 
 	bAutoListChange = Button(frame1, text="Сохранить", cursor="hand2", command=changeQuickWrite)
@@ -550,18 +589,24 @@ _________________________
 
 
 	'''команды редактору'''
-	bExcelConst = Button(window, text="Буфер обмена", cursor="hand2", command=CardsthreadFunction)
-	bExcelConst.place(x=790, y=110, width=105)
+	add_button_icon = PhotoImage(file = "assets/adding_line.png")
+	clipboard_button_icon = PhotoImage(file = "assets/clipboard_button.png")
+
+	b_clipboard_button = Button(window, text="Буфер обмена", cursor="hand2", command=CardsthreadFunction)
+	b_clipboard_button.place(x=600, y=400)
+	b_clipboard_button.config(image = clipboard_button_icon)
+	
 
 	
-	iconForOutputTag = PhotoImage(file="assets/outputTags.png")
+	iconForOutputTag = PhotoImage(file="assets/output_tag.png")
 	bOpenBrowser = Button(window, text="Вывод этикеток", cursor="hand2", command=Browser)
 	bOpenBrowser.place(x=550, y=400)
 	bOpenBrowser.config(image=iconForOutputTag)
 	CreateToolTip(bOpenBrowser, text="Вывод этикеток")
 	
 	bManualInput = Button(window, text="Запись новой позиции", cursor="hand2", command=ManualThreadFunction)
-	bManualInput.place(x=500, y=85)
+	bManualInput.place(x=700, y=400)
+	bManualInput.config(image=add_button_icon)
 
 	writeInFile = Button(frame1, text="Записать", cursor="hand2", command=searchAndWrite)
 	writeInFile.place(x=1, y=45, width=105)
@@ -569,10 +614,11 @@ _________________________
 	bFormListEntry = Button(frame1, text="Сформировать", cursor="hand2", command=formListFromAuto)
 	bFormListEntry.place(x=90, y=380, width=105)
 
-	bButtonExcellSheetW = Button(window, text="Экспорт в Excell", cursor="hand2", command=excellWrite)
-	bButtonExcellSheetW.place(x=720, y=400, width=105)
+	bButtonExcellSheetW = Button(window, text="Экспорт в Excell", cursor="hand2", command=0)
+	#bButtonExcellSheetW.place(x=720, y=400, width=105)
 
-	bButonCsvWrite = Button(window, text="Экспорт в CSV", cursor="hand2", command=csvExport)
+	
+
 	#радио кнопки выбора размера ценников
 	tagSizeVar = IntVar()
 	rTagButton1 = Radiobutton(window, text = "Б", variable=tagSizeVar, value=1)
@@ -592,70 +638,140 @@ _________________________
 	check = Checkbutton(frame1, text="Начать запись заново", variable=chk_state, onvalue=1, offvalue=0, command=buttonSwap)
 	check.place(x=1, y=90)
 
+
 	'''ввод'''
+	#функция привязки клавиши Enter к вводу новых строк в список
+	def focus():
+		if len(eManualInputSize.get()) > 0:
+			ManualThreadFunction()
+		else:
+			None
+	keyboard.add_hotkey("Enter", focus)
 
 	
-
-
-	icon = PhotoImage(file="assets/output-onlinepngtools.png")	
 	#секция кнопок ручного ввода
+	icon = PhotoImage(file="assets/output-onlinepngtools.png")	
+	edit_button_icon = PhotoImage(file = "assets/edit_button.png")
+	empty_button_icon = PhotoImage(file = "assets/empty_tag.png")
+	
+	#кнопка ввода наименования
 	eManualInputName = Entry(window, width=15)
 	bButtonForName = Button(window, command= lambda: eManualInputName.delete(0, END))
-	bButtonForName.place(x=600, y=9)
+	keyboard.add_hotkey("ctrl+1", lambda: eManualInputName.delete(0, END))
+	keyboard.add_hotkey("F1", lambda: eManualInputName.focus_set())
+	bButtonForName.place(x=610, y=20)
 	bButtonForName.config(image=icon)
+	labelName1 = Label(window, text="1.Наименование")
+	labelName1.place(x=495, y=1)
+
+	#кнопка ввода артикула
 	eManualInputArt = Entry(window, width=15)
 	bButtonForArt = Button(window, command= lambda: eManualInputArt.delete(0, END))
-	bButtonForArt.place(x=600, y=34)
+	keyboard.add_hotkey("ctrl+2", lambda: eManualInputArt.delete(0, END))
+	keyboard.add_hotkey("F2", lambda: eManualInputArt.focus_set())
+	bButtonForArt.place(x=610, y=65)
 	bButtonForArt.config(image=icon)
+	labelName2 = Label(window, text="2.Арт.")
+	labelName2.place(x=495, y=45)
+
+	#кнопка ввода номера
 	eManualInputNum = Entry(window, width=15)
 	bButtonForNum = Button(window, command= lambda: eManualInputNum.delete(0, END))
-	bButtonForNum.place(x=600, y=59)
+	keyboard.add_hotkey("ctrl+3", lambda: eManualInputNum.delete(0, END))
+	keyboard.add_hotkey("F3", lambda: eManualInputNum.focus_set())
+	bButtonForNum.place(x=610, y=110)
 	bButtonForNum.config(image=icon)
+	labelName3= Label(window, text="3.Номер", font="Arial 9")
+	labelName3.place(x=495, y=90)
+	
+	
+	#кнопка ввода типа модели
 	eManualInputType = Entry(window, width=15)
 	bButtonForType = Button(window, command= lambda: eManualInputType.delete(0, END))
-	bButtonForType.place(x=750, y=9)
+	keyboard.add_hotkey("ctrl+4", lambda: eManualInputType.delete(0, END))
+	keyboard.add_hotkey("F4", lambda: eManualInputType.focus_set())
+	bButtonForType.place(x=750, y=20)
 	bButtonForType.config(image=icon)
+	labelName4 = Label(window, text="4.Тип")
+	labelName4.place(x=635, y=1)
+
+	#кнопка ввода цены
 	eManualInputPrice = Entry(window, width=15)
 	bButtonForPrice = Button(window, command= lambda: eManualInputPrice.delete(0, END))
-	bButtonForPrice.place(x=750, y=34)
+	keyboard.add_hotkey("ctrl+5", lambda: eManualInputPrice.delete(0, END))
+	keyboard.add_hotkey("F5", lambda: eManualInputPrice.focus_set())
+	bButtonForPrice.place(x=750, y=65)
 	bButtonForPrice.config(image=icon)
+	labelName5 = Label(window, text="5.Цена")
+	labelName5.place(x=635, y=45)
+
+	#кнопка ввода материала иделия
 	eManualInputMat = Entry(window, width=15)
 	bButtonForMat = Button(window, command= lambda: eManualInputMat.delete(0, END))
-	bButtonForMat.place(x=750, y=59)
+	keyboard.add_hotkey("ctrl+6", lambda: eManualInputMat.delete(0, END))
+	keyboard.add_hotkey("F6", lambda: eManualInputMat.focus_set())
+	bButtonForMat.place(x=750, y=110)
 	bButtonForMat.config(image=icon)
+	labelName6 = Label(window, text="6.Материал")
+	labelName6.place(x=635, y=90)
+
+	#кнопка ввода цвета изделия
 	eManualInputCol = Entry(window, width=15)
 	bButtonForCol = Button(window, command= lambda: eManualInputCol.delete(0, END))
-	bButtonForCol.place(x=900, y=9)
+	keyboard.add_hotkey("ctrl+7", lambda: eManualInputCol.delete(0, END))
+	keyboard.add_hotkey("F7", lambda: eManualInputCol.focus_set())
+	bButtonForCol.place(x=900, y=20)
 	bButtonForCol.config(image=icon)
-	eManualInputFeat = Entry(window, width=15)
+	labelName7 = Label(window, text="7.Цвет")
+	labelName7.place(x=785, y=1)
+
+	#кнопка ввода отличителных свойств изделия
+	eManualInputFeat = Entry(window, width=25)
 	bButtonForFeat = Button(window, command= lambda: eManualInputFeat.delete(0, END))
-	bButtonForFeat.place(x=900, y=34)
+	keyboard.add_hotkey("ctrl+8", lambda: eManualInputFeat.delete(0, END))
+	keyboard.add_hotkey("F8", lambda: eManualInputFeat.focus_set())
+	bButtonForFeat.place(x=960, y=65)
 	bButtonForFeat.config(image=icon)
+	labelName8 = Label(window, text="8.Признаки")
+	labelName8.place(x=785, y=45)
+
+	#копка ввода размеров
 	eManualInputSize =Entry(window, width=25)
 	bButtonForSize = Button(window, command= lambda: eManualInputSize.delete(0, END))
-	bButtonForSize.place(x=970, y=59)
+	keyboard.add_hotkey("ctrl+9", lambda: eManualInputSize.delete(0, END))
+	keyboard.add_hotkey("F9", lambda: eManualInputSize.focus_set())
+	bButtonForSize.place(x=960, y=110)
 	bButtonForSize.config(image=icon)
+	labelName9 = Label(window, text="9.Размеры")
+	labelName9.place(x=785, y=90)
 
-	eManualInputName.place(x=500, y=10)
+	#кнопка для активации функции пустых ценников
+	bButtonForEmpty = Button(window, text="Пустые ценники", command=emptyTags)
+	bButtonForEmpty.place(x = 650, y = 400)
+	bButtonForEmpty.config(image=empty_button_icon)
+
+	#блок вызова класса подписей элементов ToolTip	
+	eManualInputName.place(x=510, y=20)
 	CreateToolTip(eManualInputName, text="Наименование")
-	eManualInputArt.place(x=500, y=35)
+	eManualInputArt.place(x=510, y=65)
 	CreateToolTip(eManualInputArt, text="Артикул")
-	eManualInputNum.place(x=500, y=60)
+	eManualInputNum.place(x=510, y=110)
 	CreateToolTip(eManualInputNum, text="Номер")
-	eManualInputType.place(x=650, y=10)
+	eManualInputType.place(x=650, y=20)
 	CreateToolTip(eManualInputType, text="Тип")
-	eManualInputPrice.place(x=650, y=35)
+	eManualInputPrice.place(x=650, y=65)
 	CreateToolTip(eManualInputPrice, text="Цена")
-	eManualInputMat.place(x=650, y=60)
+	eManualInputMat.place(x=650, y=110)
 	CreateToolTip(eManualInputMat, text="Материал")
-	eManualInputCol.place(x=800, y=10)
+	eManualInputCol.place(x=800, y=20)
 	CreateToolTip(eManualInputCol, text="Цвет")
-	eManualInputFeat.place(x=800, y=35)
+	eManualInputFeat.place(x=800, y=65)
 	CreateToolTip(eManualInputFeat, text="Признак")
 	CreateToolTip(rTagButton1, text="Размер ценника")
 	CreateToolTip(rTagButton2, text="Размер ценника")
-	eManualInputSize.place(x=800, y=60)
+	eManualInputSize.place(x=800, y=110)
 	CreateToolTip(eManualInputSize, text="Размеры")
+
 
 	"""секция для ввода автопоиска"""
 	writeInput_num = Entry(frame1, width=15)
@@ -690,7 +806,28 @@ _________________________
 	eDisplayTextFile = Text(frame1, width=66, wrap=WORD, font='Arial 10', height=15)
 	eDisplayTextFile.place(x=1, y=120)
 
+	#функция выполняет поиск по вводу из writeInput_num и вставляет данные в WriteInput_art если ввод из writeInput_num уже есть  
+	def insert_text_widget(e):
+		with open(autoListFile, "r", encoding="utf-8") as listFile:
+			data = writeInput_num.get()
+			tempList = listFile.readlines()
+			for item in tempList:
+				data_to_input = item.split()
+				if data in data_to_input[2]:
+					if len(data) == len(data_to_input[2]) and data in item:
+						print(data, data_to_input[2])	
+						WriteInput_art.insert(1, data_to_input[1])
+						writeInput_size.focus_set()
+					else:
+						print("its activates")
+						WriteInput_art.focus_set()
+					break
+				elif data not in data_to_input[2]:
+					print("its activates too")
+					WriteInput_art.focus_set()
+					
 
+	writeInput_num.bind("<Return>", insert_text_widget)
 
 	#функция читает лист auto_file и обновляет текст бокс автопоиска
 	def quickWriteRefreshBox():
@@ -708,15 +845,19 @@ _________________________
 
 
 	cComboForList = Combobox(window, width=77)
-	cComboForList.place(x=500, y=150)
-	
+	cComboForList.place(x=500, y=170)
+
 	def comboBoxMod():
 		with open(filepathList, "r", encoding="utf-8") as fileRead:
+			count = 0
 			listFile = fileRead.readlines()
 			tempList = []
 			for x in listFile:
+				count += 1
 				tempList.append(x)
-				cComboForList['values'] = (tempList)
+				cComboForList['values'] = (tempList) 
+		lLabelForDisplayQuont = Label(window, font = "Arial 10", text="№: {}".format(count))
+		lLabelForDisplayQuont.place(x=889, y=140)
 	comboBoxMod()
 
 	
@@ -761,7 +902,6 @@ _________________________
 				modifiedList.write(newFileContents)
 				modifiedList.close()
 				
-				print(newLine)
 				textBoxRefresh()
 				comboBoxMod()
 				
@@ -773,8 +913,10 @@ _________________________
 			
 
 
+	
 	bTestButton = Button(window, text="Фиксация", command=listModifier)
-	bTestButton.place(x=500, y=120)
+	bTestButton.place(x=750, y=400)
+	bTestButton.config(image=edit_button_icon)
 
 	
 
@@ -808,8 +950,10 @@ _________________________
 
 	'''labels'''
 
-	lLabelForTimer = Label(window, font="Arial 9", text="Ввод неактивен")
-	lLabelForTimer.place(x=900, y=115)
+	
+
+	
+	
 
 	lLabelForManualMode = Label(frame1, font="Arial 9", text="Система для несортированных предметов")
 	lLabelForManualMode.place(x=100, y=2)
@@ -817,5 +961,34 @@ _________________________
 
 	#--standalone --mingw64 --windows-disable-console --windows-icon-from-ico=tag_icon.ico --plugin-enable=tk-inter
 
+
+	"""def csvExport():
+		tempList = []
+		with open(filepathList, "r", encoding="utf-8") as readFile:
+			for line in readFile:
+				tempList.append(line.rsplit())
+				filteredList = list(filter(None, tempList))
+			for x in filteredList:
+				art = x[1]; name = x[0]; number = x[2]; type = x[3]; price = x[4];
+				material = x[5]; features = x[6]; collor = x[7]; marker = x[8]; sizes = x[9:]
+				sizes = " ".join(sizes)
+				with open(CSVFilePath, "a", encoding="utf-8") as toWrite:
+					writer = csv.writer(toWrite)
+					writer.writerow([name, art, number, type, price, material, collor, features, marker, sizes])
+"""
+
+
+
 	window.mainloop()
 main()
+
+
+	#--standalone --onefile --mingw64 --windows-disable-console --windows-icon-from-ico=assets\tag_icon.ico --plugin-enable=tk-inter --include-data-dir=C:\Users\wda61\Dropbox\Python_projects\Pricetag\assets=assets
+
+
+
+
+
+
+
+
