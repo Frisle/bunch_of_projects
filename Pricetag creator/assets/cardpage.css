@@ -1,0 +1,32 @@
+
+ .grid {
+  display: grid;
+  grid-column: 4;
+  grid-row: 5;
+  position: relative;
+  size: 1980px; 
+}
+
+.box {
+ text-align: start;
+ font-size: 15px;
+ white-space: pre-line;
+ font-style: normal;
+ margin-bottom: 1px;
+ display: -webkit-inline-flex;
+}
+
+
+
+p {
+ border: 1px black solid;
+ padding: 0.10cm;
+ 
+
+ 
+}
+
+b {
+ display: contents;
+}
+ 

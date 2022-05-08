@@ -1,0 +1,32 @@
+
+ .grid {
+   display: -webkit-inline-flex;
+   grid-template-columns: 7cm 7cm 7cm 7cm;
+   grid-template-rows: 4cm 4cm 4cm 4cm; 
+   /*grid-row-gap: 15px;*/
+   grid-column-gap: 15px;
+   position: relative;
+   size: 1980px; 
+ }
+
+.box {
+  text-align: start;
+  font-size: 15px;
+  white-space: pre-line;
+  font-style: normal;
+  
+}
+
+
+
+p {
+  border: 1px black solid;
+  padding: 0.10cm;
+  display: -webkit-inline-flex;
+  
+}
+
+b {
+  display: contents;
+}
+  

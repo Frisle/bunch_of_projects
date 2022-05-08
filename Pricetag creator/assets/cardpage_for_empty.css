@@ -1,0 +1,34 @@
+
+ #textFile {
+   display: grid;
+   grid-template-columns: 6.7cm 6.7cm 6.7cm 6.7cm;
+   grid-template-rows: 4cm 4cm 4cm 4cm; 
+   grid-row-gap: 13px;
+   grid-column-gap: 13px;
+   position: relative;
+   size: 1980px; 
+   padding: 5px; 
+ }
+
+.box {
+  display: grid;
+  text-align: start;
+  font-size: 15px;
+  white-space: pre-line;
+  font-style: normal;
+  border: 1px black solid;
+  margin: -5px;
+}
+
+
+
+
+p {
+  padding: 0.10cm;
+  font-style: normal;
+}
+
+b {
+  display: contents;
+}
+  
