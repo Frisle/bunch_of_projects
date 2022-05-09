@@ -1,1 +1,1 @@
-data_set_name: C:\Users\vika8\Dropbox\Python projects\Vocabulary quiz\assets/english_words.txt
+data_set_name: 

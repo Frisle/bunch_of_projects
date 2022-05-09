@@ -42,16 +42,17 @@ s.theme_use("clam")
 collor = "gray97"
 
 
+english_words_quiz_path = os.path.join(os.getcwd(), 'assets/english_words.txt')
+finnish_words_quiz_path = os.path.join(os.getcwd(), 'assets/finish_words.txt')           
+deutch_words_quiz_path = os.path.join(os.getcwd(), 'assets/deutch_words.txt')           
+configuration_file = os.path.join(os.getcwd(), "assets/configurate.txt")
 
-with open("configurate.txt", "w", encoding="utf - 8") as configure:
+with open(configuration_file, "w", encoding="utf - 8") as configure:
 	write = configure.write("data_set_name: ")
 
 
 
 
-english_words_quiz_path = os.path.join(os.getcwd(), 'english_words.txt')
-finnish_words_quiz_path = os.path.join(os.getcwd(), 'finish_words.txt')           
-deutch_words_quiz_path = os.path.join(os.getcwd(), 'deutch_words.txt')           
 
 data_base_list = ["English", "Finnish", "Deutch"]
 
@@ -66,7 +67,7 @@ def configurate():
 	elif cData_Base_choose.get() == "Deutch":
 		path = deutch_words_quiz_path
 	
-	with open("configurate.txt", "w", encoding="utf - 8") as configure:
+	with open(configuration_file, "w", encoding="utf - 8") as configure:
 		try:
 			configure.write("data_set_name: %s" %path)
 		except UnboundLocalError:
@@ -105,7 +106,7 @@ def interface_flush():
 def sorting():
 	#lLable_for_indicate_start.configure(text="") 
 	interface_flush()
-	with open("configurate.txt", "r", encoding = "utf - 8") as configure:
+	with open(configuration_file, "r", encoding = "utf - 8") as configure:
 		read = configure.readline()
 		#переменная path хранит путь до файла. До 14 индекса указана категория.
 		path = read[14:].strip()
