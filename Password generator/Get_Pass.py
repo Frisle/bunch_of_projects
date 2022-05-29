@@ -122,15 +122,20 @@ def main():
 			messagebox.showerror("Ошибка ввода", "Введите название сервиса и логин")
 			return
 		n = int(comboSymbolsQuont.get())
-		result = ""
+		#переменная n задает длину пароля
+		shufled_result = ""
 		for x in range(n): #генерация рандомного пароля
 			x = random.choice(listNumbers)
 			y = random.choice(listLiteral)
 			z = random.choice(listOfCapitals)
 			a = random.choice(listSymbols)
-			result += str(x) + str(y) + str(z) + str(a)
-		listOfPasswords = "{} | {} | {} | {}\n".format(userInput, result[:n], loginInput, timeString)
-		pyperclip.copy(result[:n]) #метод копирования текста в буфер обмена
+			result_list = [x, y, z, a]
+			random.shuffle(result_list)
+			shufled_result += "".join(map(str,result_list))
+			#строка перемешивает случайно выбранные символы для избежания повторяющихся паттернов
+			
+		listOfPasswords = "{} | {} | {} | {}\n".format(userInput, shufled_result[:n], loginInput, timeString)
+		pyperclip.copy(shufled_result[:n]) #метод копирования текста в буфер обмена
 		spam = pyperclip.paste
 		def writeInFile():
 			count = 0
