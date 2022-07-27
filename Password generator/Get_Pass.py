@@ -7,15 +7,16 @@ from tkinter import messagebox
 from tkinter.ttk import *
 from shutil import copyfile
 import getpass
+from tooltip import CreateToolTip, ToolTip
 
 window = Tk()
 window.title("Генератор паролей. Версия 1.0")
 window.geometry('510x400+500+300')
-window.iconbitmap('assets\ico.ico')
+window.iconbitmap('assets/ico.ico')
 window.resizable(False, False)
 
-filepath = os.path.join(os.getcwd(), 'assets\password.pas')
-#file_path_copy = os.path.join(os.getcwd(), 'password(copy).pas')
+filepath = os.path.join(os.getcwd(), 'assets/password.pas')
+# file_path_copy = os.path.join(os.getcwd(), 'password(copy).pas')
 
 try:
 	f = open(filepath, "r", encoding="utf-8")
@@ -23,7 +24,7 @@ except FileNotFoundError:
 	f = open(filepath, "w", encoding="utf-8")
 	f.close()
 else:
-	None
+	pass
 
 name = getpass.getuser()
 
@@ -31,45 +32,8 @@ name = getpass.getuser()
 try:
 	os.mkdir("C:\\Users\\%s\\AppData\\Roaming\\Get_pass" %name)
 except FileExistsError:
-	None
+	pass
 
-class ToolTip(object):
-
-	def __init__(self, widget):
-		self.widget = widget
-		self.tipwindow = None
-		self.id = None
-		self.x = self.y = 0
-
-	def showtip(self, text):
-		self.text = text
-		if self.tipwindow or not self.text:
-			return
-		x, y, cx, cy = self.widget.bbox("insert")
-		x = x + self.widget.winfo_rootx() + 57
-		y = y + cy + self.widget.winfo_rooty() +10
-		self.tipwindow = tw = Toplevel(self.widget)
-		tw.wm_overrideredirect(1)
-		tw.wm_geometry("+%d+%d" % (x, y))
-		label = Label(tw, text=self.text, justify=LEFT,
-					  background="#ffffe0", relief=SOLID, borderwidth=1,
-					  font=("tahoma", "8", "normal"))
-		label.pack(ipadx=1)
-
-	def hidetip(self):
-		tw = self.tipwindow
-		self.tipwindow = None
-		if tw:
-			tw.destroy()
-
-def CreateToolTip(widget, text):
-	toolTip = ToolTip(widget)
-	def enter(event):
-		toolTip.showtip(text)
-	def leave(event):
-		toolTip.hidetip()
-	widget.bind('<Enter>', enter)
-	widget.bind('<Leave>', leave)
 
 icon = PhotoImage(file="assets\\button_resize.png")
 
@@ -107,11 +71,13 @@ def main():
 		timeString = time.strftime("%m/%d/%Y, %H:%M:%S", timeAddition)
 		listNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
 		listLiteral = ["a", "b","c", "d", "e", "f", "g", "h", "i", "j", "k", 
-						"l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "w", "x", "y", "z"]
+						"l", "m", "n", "o", "p", 
+						"q", "r", "s", "t", "u", "w", "x", "y", "z"]
 		listOfCapitals = ["A", "B","C", "D", "E", "F", "G", "H", "I", "J", "K",
-							"L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "W",
-							"X", "Y", "Z"]
-		listSymbols = ["?", "@", "&", "!", "%", "#", "*", "$", "№", "<", ">", "(", ")", "-", "+", "="]
+						"L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "W",
+						"X", "Y", "Z"]
+		listSymbols = ["?", "@", "&", "!", "%", "#", "*", "$", "№", 
+						"<", ">", "(", ")", "-", "+", "="]
 		listOfPasswords = []
 		try:
 			userInput = str(eEntryServiceName.get()).capitalize()
@@ -122,7 +88,7 @@ def main():
 			messagebox.showerror("Ошибка ввода", "Введите название сервиса и логин")
 			return
 		n = int(comboSymbolsQuont.get())
-		#переменная n задает длину пароля
+		# переменная n служит ограничением длины пароля
 		shufled_result = ""
 		for x in range(n): #генерация рандомного пароля
 			x = random.choice(listNumbers)
@@ -132,11 +98,11 @@ def main():
 			result_list = [x, y, z, a]
 			random.shuffle(result_list)
 			shufled_result += "".join(map(str,result_list))
-			#строка перемешивает случайно выбранные символы для избежания повторяющихся паттернов
-			
-		listOfPasswords = "{} | {} | {} | {}\n".format(userInput, shufled_result[:n], loginInput, timeString)
-		pyperclip.copy(shufled_result[:n]) #метод копирования текста в буфер обмена
-		spam = pyperclip.paste
+			# строка перемешивает случайно выбранные символы для избежания повторяющихся паттернов
+
+		listOfPasswords = "{} | {} | {} | {}\n".format(userInput, shufled_result[:n], loginInput, timeString) #result[:n]
+		pyperclip.copy(shufled_result[:n]) # метод копирования текста в буфер обмена
+		pyperclip.paste
 		def writeInFile():
 			count = 0
 			with open (filepath, encoding='utf-8') as passwordFile:		
@@ -144,14 +110,14 @@ def main():
 				for line in stringList:
 					if userInput in line:
 						count += 1
-						ind = stringList.index(line) #хранит индекс элемента строки выбранного пользователем
+						ind = stringList.index(line) # хранит индекс элемента строки выбранного пользователем
 			if count == 1:
-				def insideFunc():#функция заменяет требуемую строку на новую
-					#открытие текстового файла
+				def insideFunc():# функция заменяет требуемую строку на новую
+					# открытие текстового файла
 					passwordFile = open(filepath,"w", encoding='utf-8')
-					#привязка индекса к новой строке
+					# привязка индекса к новой строке
 					stringList[ind] = listOfPasswords
-					#включение новой строки в лист с остальными записями
+					# включение новой строки в лист с остальными записями
 					newFileContents = "".join(stringList)
 					passwordFile.write(newFileContents)
 					passwordFile.close()
@@ -268,13 +234,13 @@ def refreshBox():
 			for line in Fileread:
 				eDisplayTextFile.insert(1.0, line)
 		except Exception:
-			None
+			pass
 refreshBox()
 
 
 
 
-#функция создает бекап файла с паролями и считывает время последней его модификации 
+# функция создает бекап файла с паролями и считывает время последней его модификации 
 try:
 	def backing_up():
 		name = getpass.getuser()
@@ -283,13 +249,13 @@ try:
 							" и тем самым перезапишет актуальную копию. Продолжать?")
 		if warning:
 			copyfile(filepath, "C:\\Users\\%s\\AppData\\Roaming\\Get_pass\\password(copy).pas" %name)
-			#метод смотрит время последней модификации и возвращает его в секундах
+			# метод смотрит время последней модификации и возвращает его в секундах
 			fileStatsObj = os.stat("C:\\Users\\%s\\AppData\\Roaming\\Get_pass\\password(copy).pas" %name).st_mtime
-			#метод переводит секунды в читаемый формат времени
+			# метод переводит секунды в читаемый формат времени
 			modificationTime = time.ctime(fileStatsObj)
 			lLableForModTime.configure( text = "Последний бекап был: " +  str(modificationTime))
 except Exception:
-	None
+	pass
 
 bButtonForBackUp = Button(window, text = "Бэкап", width=15, command=backing_up)
 bButtonForBackUp.place(x = 410, y = 70)
@@ -298,7 +264,7 @@ lLableForModTime = Label(window, text=" ", font= "arial 8")
 lLableForModTime.place(x = 250, y = 130)
 
 
-#дополнительная копия метода отображает время изменения при запуске
+# дополнительная копия метода отображает время изменения при запуске
 def function_to_display_time_of_backup():
 	name = getpass.getuser()
 	try:
@@ -306,7 +272,7 @@ def function_to_display_time_of_backup():
 		modificationTime = time.ctime(fileStatsObj)
 		lLableForModTime.configure( text = "Последний бекап был: " +  str(modificationTime))
 	except Exception:
-		None
+		pass
 function_to_display_time_of_backup()
 
 
@@ -320,7 +286,7 @@ def restore_from_backup():
 			copyfile("C:\\Users\\%s\\AppData\\Roaming\\Get_pass\\password(copy).pas" %name, filepath)
 			refreshBox()
 	except Exception:
-		None
+		pass
 
 bButtonForRestore = Button(window, text = "Восcтановить", width= 15, command=restore_from_backup)
 bButtonForRestore.place(x = 410, y = 100)
@@ -345,7 +311,7 @@ helpText = """Для генерации нового пароля:\nВведит
 main()
 
 
-#--standalone --mingw64 --windows-disable-console --windows-icon-from-ico=assets\ico.ico --plugin-enable=tk-inter --include-data-dir=C:\Users\vika8\Dropbox\Python_projects\Password_generator\assets=assets
+#--standalone -onefile --mingw64 --windows-disable-console --windows-icon-from-ico=assets\ico.ico --plugin-enable=tk-inter --include-data-dir=C:\Users\wda61\Dropbox\Python_projects\Password_generator\assets=assets
 
 
 window.mainloop()	

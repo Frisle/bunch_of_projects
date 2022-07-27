@@ -1,4 +1,4 @@
-from openpyxl import Workbook, load_workbook
+from openpyxl import load_workbook
 import os
 import subprocess
 import threading
@@ -7,7 +7,8 @@ from tkinter import *
 from tkinter import Frame, messagebox
 from tkinter.ttk import *
 import pyperclip
-#import xlsxwriter
+from refresh_module import quickWriteRefreshBox, textBoxRefresh, makeChangeInLits
+from tooltip import Toplevel, CreateToolTip
 import keyboard
 
 helpText = """ 
@@ -20,7 +21,8 @@ helpText = """
 Работа с вводом данных для автоматической обработки
 
 1. По открытию программы нажать Ввод из буфера (активируется 60 секундное окно для ввода)
-2. Открыть таблицы Excell и скопировать требуемое количество строк и нажать CTRL + C или копировать через контекстное меню.
+2. Открыть таблицы Excell и скопировать требуемое количество строк и нажать CTRL + 
+C или копировать через контекстное меню.
 3. На этом этапе в окне в правой стороне программы появятся скопированные строки. Для вывода строк в виде ценников, сперва необходимо запустить локальный сервер.
 Для этого нужно открыть низпадающее Меню в левом углу программы и выбрать Локальный сервер.
 4.Следующий шаг - создать ценники. На этом этапе программа проверяет правильность ввода (есть возможность проверить их вручную). Для создания ценников нужно нажать
@@ -28,9 +30,9 @@ helpText = """
 """
 
 
-#строка указывает скрипту работать с файлом в нужной директории
+# строка указывает скрипту работать с файлом в нужной директории
 cardsfilepath = os.path.join(os.getcwd(), 'assets/cardsFile.txt')
-pathToServer  = os.path.join(os.getcwd(), 'assets/launch.exe')
+pathToServer = os.path.join(os.getcwd(), 'assets/launch.exe')
 filepathList = os.path.join(os.getcwd(), 'assets/list.txt')
 readMeFile = os.path.join(os.getcwd(), 'assets/README.txt')
 autoListFile = os.path.join(os.getcwd(), 'assets/auto_list.txt')
@@ -53,69 +55,32 @@ except FileNotFoundError:
 	f3 = open(tempxlsx, "w")
 	f3.close()
 else:
-    	None
+	pass
 
 
-class filteredString():
+class FilteredString:
 
-	def clean(self, str):
+	def clean(self, line):
 		self.filtered = " "
-		for sym in str:
+		for sym in line:
 			if sym != "'" and sym != "[" and sym != "]":
 				self.filtered += sym
 				
 		return self.filtered
-	
-		
 
-v = filteredString()
+instance_filtered_class = FilteredString()
 
 
-class ToolTip(object):
 
-	def __init__(self, widget):
-		self.widget = widget
-		self.tipwindow = None
-		self.id = None
-		self.x = self.y = 0
+def main():  # ведущая функция содержащая весь основной код
 
-	def showtip(self, text):
-		self.text = text
-		if self.tipwindow or not self.text:
-			return
-		x, y, cx, cy = self.widget.bbox("insert")
-		x = x + self.widget.winfo_rootx() + 57
-		y = y + cy + self.widget.winfo_rooty() +10
-		self.tipwindow = tw = Toplevel(self.widget)
-		tw.wm_overrideredirect(1)
-		tw.wm_geometry("+%d+%d" % (x, y))
-		label = Label(tw, text=self.text, justify=LEFT,
-					  background="#ffffe0", relief=SOLID, borderwidth=1,
-					  font=("tahoma", "8", "normal"))
-		label.pack(ipadx=1)
-
-	def hidetip(self):
-		tw = self.tipwindow
-		self.tipwindow = None
-		if tw:
-			tw.destroy()
-
-def main():#ведущая функция содержащая весь основной код
-		
-	def Browser():#запускает браузер по умолчанию для отрисовки карточек
+	def Browser():  # запускает браузер по-умолчанию для отрисовки карточек
 		webbrowser.open('http://127.0.0.1:8000/assets/cardspage.html')
 
-	def Server():#запускает локальный сервер для выгрузки страницы
+	def server():  # запускает локальный сервер для выгрузки страницы
 		subprocess.Popen(pathToServer)
 
-	def CreateToolTip(widget, text):#функция вызова класса tooltip
-		toolTip = ToolTip(widget)
-		def enter(event):
-				toolTip.showtip(text)
-		def leave(event):
-				toolTip.hidetip()
-		widget.bind('<Enter>', enter)
-		widget.bind('<Leave>', leave)
+	
 
 	
 
@@ -130,62 +95,39 @@ def main():#ведущая функция содержащая весь осно
 		fileList = open(filepathList, "r+", encoding="utf-8")
 		fileList.truncate(0)
 		fileList.close()
-		textBoxRefresh()
+		textBoxRefresh(filepathList, eListDisplayBox, window)
 		comboBoxMod()
 		fileCards = open(cardsfilepath, "r+", encoding="utf-8")
 		fileCards.truncate(0)
 		fileCards.close()
 		
-
-
-	def openCardsFile():#открывает текстовый файл с записанными карточками
+		
+	def cards_view():
 		editWindow = Toplevel()
 		editWindow.title("Обувной учет. Версия 1.0")
 		editWindow.geometry('500x500+400+100')
 		editWindow.iconbitmap('assets/tag_icon.ico')
 		editWindow.resizable(False, False)
-		
 		editTextBox = Text(editWindow, width=65, wrap=WORD, font='Arial 10', height=26)
 		editTextBox.place(x=15, y=10)
 		with open(cardsfilepath, "r", encoding="utf-8") as FileRead:
 				text = FileRead.readlines()
 				text1 = "".join(text)
 				editTextBox.insert(1.0, text1)
-		def writeChange():
-			with open(cardsfilepath, "w", encoding="utf-8") as FileRead:
-				changed = editTextBox.get(1.0, END)
-				FileRead.write(changed)
-		bSaveChanges = Button(editWindow, text="Сохранить", cursor='hand2', command=writeChange)
-		bSaveChanges.place(x=15, y=470)
-
-
-	
-		with open(filepathList, "r", encoding="utf-8") as f:
-			
-			list1 = []
-			for line in f:
-				list1.append(line.split())
-				filteredList = list(filter(None, list1))
-				x = len(filteredList)
-				if x == None:
-					lLabelForDisplayQuont = Label(editWindow, text="Число ценников 0")
-					lLabelForDisplayQuont.place(x=110, y=470)
-				else:
-					lLabelForDisplayQuont = Label(editWindow, text="Число ценников " + str(x))
-					lLabelForDisplayQuont.place(x=110, y=470)
-			
-	
-#блок захвата буфера обмена и записи данных из таблиц Excell
-	def writeFromClipboard():#блок перезаписи листа и инициализации буфера обмена
+		 
+		 
+# блок захвата буфера обмена и записи данных из таблиц Excell
+	def writeFromClipboard():
+		# блок перезаписи листа и инициализации буфера обмена
 		b_clipboard_button.configure(text="Ввод активен")
 		try:
 			file = open(filepathList, "a", encoding="utf-8")
-			spam = pyperclip.waitForNewPaste(20)#получение днных из буфера и хранение
+			spam = pyperclip.waitForNewPaste(20) # получение днных из буфера и хранение
 			pyperclip.copy('')#очистка буфера после сохранения данных в spam
 			tempString = " ".join(spam.split("\t"))#превращение списка в строку с разделением пробелом
 			file.write("{}".format(tempString))
 			file.close()
-			textBoxRefresh()
+			textBoxRefresh(filepathList, eListDisplayBox, window)
 			eListDisplayBox.see([0])
 		except Exception:
 			messagebox.showinfo("INFO","Ввод из буфера завершен")
@@ -232,7 +174,7 @@ ____, ____, ____, ____, ____"</b></p>"""
 
 
 	def cardsFormat():	
-		try:
+		
 			#очистка готовых ценников перед записью
 			fileCards = open(cardsfilepath, "r+", encoding="utf-8")
 			fileCards.truncate(0)
@@ -242,24 +184,35 @@ ____, ____, ____, ____, ____"</b></p>"""
 				for line in listFile:#блок извлекающий информацию из файла
 					dataMassive.append(line.rsplit())#метод делит целую строку на отдельные через запятую
 					filteredList = list(filter(None, dataMassive))#фильтрует список от пробелов и создает лист с листами
-				for x in filteredList:#основной блок извлекающий и сортирующий информацию из листа	
-					name = x[0]; article = x[1]; number = x[2]; shoeType = x[3]; price = x[4]; 
-					material = x[5]; collor = x[6]; features = x[7]; marker = x[8]; sizes = x[9:]
+					
+				for x in filteredList:#основной блок извлекающий и сортирующий информацию из листа
+					name = x[0] 
+					article = x[1] 
+					number = x[2] 
+					shoeType = x[3]  
+					price = x[4]
+					material = x[5] 
+					collor = x[6] 
+					features = x[7] 
+					marker = x[8] 
+					sizes = x[9:]
 					
 					
+			
 					#логический блок конструирует карточки
-					if len(sizes) > 6:
+					if len(sizes) >= 6:
 						printSizes = "{}\n{}".format(str(x[9:14]), str(x[14:]))
-						cleanSizes = v.clean(printSizes)
-					elif len(sizes) > 8:
+						
+						cleanSizes = instance_filtered_class.clean(printSizes)
+					elif len(sizes) >= 8:
 						printSizes = "{}\n{}\n{}".format(str(x[9:14]), str(x[14:20]), str(x[20:]))
-						cleanSizes = v.clean(printSizes)
+						cleanSizes = instance_filtered_class.clean(printSizes)
 					elif len(sizes) == 1:
 						printSizes = "{}".format(str(x[9:])) 
-						cleanSizes = v.clean(printSizes)		
+						cleanSizes = instance_filtered_class.clean(printSizes)		
 					else:
 						printSizes = "{}".format(str(x[9:]))
-						cleanSizes = v.clean(printSizes)
+						cleanSizes = instance_filtered_class.clean(printSizes)
 					if number == "нет":
 						printNumber = "{}".format(collor)
 					else:
@@ -282,24 +235,22 @@ ____, ____, ____, ____, ____"</b></p>"""
 						printArticul = "{}".format(article)
 					
 					file = open(cardsfilepath, "a", encoding="utf-8")#блок записи в файл
-					
 
 					if marker == "М": #маленькие карточки
 						printTag = str(printTagM).format(cleanName, printArticul, printNumber, printMaterial, cleanSizes)
 						file.write(printTag)
-						file.close()
+
 						comboBoxMod()
 					elif marker == "Б":
 						printTag = str(printTagB).format(cleanName, printArticul, printNumber, printMaterial, cleanSizes)
 						file.write(printTag)
-						file.close
+						file.close()
 						comboBoxMod()
-		except Exception:
-			messagebox.showerror("Ошибка ввода", "Список пуст или данные введены неверно")
-			return 
-	
+	"""except Exception:
+		
+		messagebox.showerror("Ошибка ввода", "Список пуст или данные введены неверно")
+		return""" 
 
-	
 
 	def emptyTags():
 		i = 0
@@ -310,7 +261,6 @@ ____, ____, ____, ____, ____"</b></p>"""
 			i += 1
 		Browser()
 			
-
 
 	#блок ручного ввода
 	def manualInput():
@@ -369,7 +319,7 @@ ____, ____, ____, ____, ____"</b></p>"""
 		wb.save(tempxlsx)
 		wb.close()
 		comboBoxMod()
-		textBoxRefresh()
+		textBoxRefresh(filepathList, eListDisplayBox, window)
 		eListDisplayBox.see("end")
 
 	#блок записи с автоматическим поиском и заменой строк
@@ -382,7 +332,7 @@ ____, ____, ____, ____, ____"</b></p>"""
 			eDisplayTextFile.delete(1.0, END)
 			return
 		else:
-			quickWriteRefreshBox() 
+			quickWriteRefreshBox(autoListFile, eDisplayTextFile) 
 		tempList = []
 		savedValues = []
 		inputName = writeInput_name.get()
@@ -420,7 +370,7 @@ ____, ____, ____, ____, ____"</b></p>"""
 				with open(autoListFile, "a", encoding="utf-8") as listFile:
 					listFile.write("{} {} {} {}\n".format(inputName, inputArt, inputNum, inputSize))
 				comboBoxMod()
-				quickWriteRefreshBox()
+				quickWriteRefreshBox(autoListFile, eDisplayTextFile)
 		elif count >= 1:
 			file = open(autoListFile, "r", encoding="utf-8")
 			lines = file.readlines()
@@ -433,7 +383,7 @@ ____, ____, ____, ____, ____"</b></p>"""
 				for line in lines:
 						newFile.write(line)
 				newFile.write(rewriteValues)
-			quickWriteRefreshBox()
+			quickWriteRefreshBox(autoListFile, eDisplayTextFile)
 			comboBoxMod()
 		WriteInput_art.delete(0, END)
 		writeInput_size.delete(0, END)
@@ -443,7 +393,6 @@ ____, ____, ____, ____, ____"</b></p>"""
 		with open(autoListFile, "w", encoding="utf-8") as ReadFile:
 			change = eDisplayTextFile.get(1.0, END)
 			ReadFile.write(change)
-	
 
 	def formListFromAuto():
 		if tagSizeVar1.get() == 1:
@@ -469,34 +418,8 @@ ____, ____, ____, ____, ____"</b></p>"""
 				with open(filepathList, "a", encoding="utf-8") as sortFile:
 					name = "{} {} {} нет 0 нет нет нет {} {}\n".format(name, art, number, marker, sizes1)
 					sortFile.write(name)
-				textBoxRefresh()
+				textBoxRefresh(filepathList, eListDisplayBox, window)
 
-	#блок записи в excell
-	"""def excellWrite():
-		workbook = xlsxwriter.Workbook(tempxlsx)
-		worksheet = workbook.add_worksheet()
-
-		tempList = []
-		row = 0
-		col = 0
-		sizes1 =[]
-		with open(filepathList, "r", encoding="utf-8") as readFile:
-			for line in readFile:
-				tempList.append(line.rsplit())
-			for x in tempList:
-				art = x[1]; name = x[0]; number = x[2]; type = x[3]; price = x[4]
-				material = x[5]; features = x[6]; collor = x[7]; marker = x[8]; sizes = x[9:]
-				sizes1.append(sizes)
-				worksheet.write(row, col, name); worksheet.write(row, col+1, art); 
-				worksheet.write(row, col+2, number); worksheet.write(row, col+3, type); 
-				worksheet.write(row, col+4, price); worksheet.write(row, col+5, material)
-				worksheet.write(row, col+6, features); worksheet.write(row, col+7, collor)
-				worksheet.write(row, col+8, marker); worksheet.write_row(row, 9, sizes)
-				row+=1
-		workbook.close()
-		path_to_excell = r"C:\Program Files\Microsoft Office\root\Office16\EXCEL.exe"
-		subprocess.call([path_to_excell, tempxlsx])
-"""
 	
 	def helpWindow():
 		help = Toplevel()
@@ -504,15 +427,9 @@ ____, ____, ____, ____, ____"</b></p>"""
 		help.geometry('1100x500+200+100')
 		help.iconbitmap('assets/tag_icon.ico')
 		help.resizable(False, False)
-
-		
-
 		lLableForHelp = Label(help, text = helpText, font = 'Arial 10')
 		lLableForHelp.place(x = 10, y = 10)
 		
-
-	
-
 
 	'''функции трединга'''
 
@@ -521,7 +438,7 @@ ____, ____, ____, ____, ____"</b></p>"""
 		thread.start()
 			
 	def ServerThreadFuncton():
-		thread1 = threading.Thread(target=Server)
+		thread1 = threading.Thread(target=server)
 		thread1.start()
 		
 	def ManualThreadFunction():
@@ -532,9 +449,7 @@ ____, ____, ____, ____, ____"</b></p>"""
 		thread3 = threading.Thread(target=searchWriteAndReplace)
 		thread3.start()
 
-	def excellExport():
-		thread4 = threading.Thread(target=0)
-		thread4.start()
+
 
 
 	'''Секция размещения виджетов/кнопок интерфейса'''
@@ -558,7 +473,7 @@ ____, ____, ____, ____, ____"</b></p>"""
 	window.config(menu=mainmenu)
 
 	filemenu = Menu(mainmenu, tearoff=0)
-	filemenu.add_command(label="Просмотр файла", command=openCardsFile)
+	filemenu.add_command(label="Просмотр файла", command=cards_view)
 	filemenu.add_command(label="Перезапись", command=revriteFiles)
 	filemenu.add_command(label="Локальный сервер", command=ServerThreadFuncton)
 	
@@ -617,7 +532,6 @@ ____, ____, ____, ____, ____"</b></p>"""
 	bButtonExcellSheetW = Button(window, text="Экспорт в Excell", cursor="hand2", command=0)
 	#bButtonExcellSheetW.place(x=720, y=400, width=105)
 
-	
 
 	#радио кнопки выбора размера ценников
 	tagSizeVar = IntVar()
@@ -645,7 +559,7 @@ ____, ____, ____, ____, ____"</b></p>"""
 		if len(eManualInputSize.get()) > 0:
 			ManualThreadFunction()
 		else:
-			None
+			pass
 	keyboard.add_hotkey("Enter", focus)
 
 	
@@ -819,48 +733,32 @@ ____, ____, ____, ____, ____"</b></p>"""
 						WriteInput_art.insert(1, data_to_input[1])
 						writeInput_size.focus_set()
 					else:
-						print("its activates")
 						WriteInput_art.focus_set()
 					break
 				elif data not in data_to_input[2]:
-					print("its activates too")
 					WriteInput_art.focus_set()
 					
 
 	writeInput_num.bind("<Return>", insert_text_widget)
-
-	#функция читает лист auto_file и обновляет текст бокс автопоиска
-	def quickWriteRefreshBox():
-		with open(autoListFile, "r", encoding="utf-8") as Fileread:
-			eDisplayTextFile.delete(1.0, END)
-			try:
-				temp = Fileread.readlines()
-				text = "".join(temp)
-				eDisplayTextFile.insert(1.0, text)
-			except Exception:
-				None
-	quickWriteRefreshBox()
-
-
-
 
 	cComboForList = Combobox(window, width=77)
 	cComboForList.place(x=500, y=170)
 
 	def comboBoxMod():
 		with open(filepathList, "r", encoding="utf-8") as fileRead:
-			count = 0
+			price_tag_quontity_count = 0
 			listFile = fileRead.readlines()
 			tempList = []
 			for x in listFile:
-				count += 1
+				price_tag_quontity_count += 1
 				tempList.append(x)
 				cComboForList['values'] = (tempList) 
-		lLabelForDisplayQuont = Label(window, font = "Arial 10", text="№: {}".format(count))
-		lLabelForDisplayQuont.place(x=889, y=140)
+		return price_tag_quontity_count
 	comboBoxMod()
 
-	
+	price_tag_quontity_count = comboBoxMod()
+	lLabelForDisplayQuont = Label(window, font = "Arial 10", text="№: {}".format(price_tag_quontity_count))
+	lLabelForDisplayQuont.place(x=889, y=140)
 	
 	def listModifier():
 		count = 0
@@ -902,25 +800,19 @@ ____, ____, ____, ____, ____"</b></p>"""
 				modifiedList.write(newFileContents)
 				modifiedList.close()
 				
-				textBoxRefresh()
+				textBoxRefresh(filepathList, eListDisplayBox, window)
 				comboBoxMod()
 				
 			insideFunc()
 		
 		else:
-			return
+			pass
 		
 			
-
-
-	
 	bTestButton = Button(window, text="Фиксация", command=listModifier)
 	bTestButton.place(x=750, y=400)
 	bTestButton.config(image=edit_button_icon)
 
-	
-
-	
 	
 	eListDisplayBox = Text(window, width=70, wrap=WORD, font='Arial 10', height=12)
 	eListDisplayBox.place(x=500, y=200)
@@ -930,30 +822,16 @@ ____, ____, ____, ____, ____"</b></p>"""
 	eListDisplayBox.config(yscrollcommand=scroll.set)
 
 	
-
-
 	#функция читает list и обновляет текст бокс
-	def textBoxRefresh():
-		with open(filepathList, "r", encoding="utf-8") as ReadFile:
-			eListDisplayBox.delete(1.0, END)
-			temp = ReadFile.readlines()
-			listText = "".join(temp)
-			eListDisplayBox.insert(1.0, listText)
-			def makeChangeInLits():
-				with open(filepathList, "w", encoding="utf-8") as Filelist:
-					tempList = eListDisplayBox.get(1.0, END)
-					Filelist.write(tempList)
-		bRefreshTextBox = Button(window, text="Сохранить", cursor="hand2", command=makeChangeInLits)
-		bRefreshTextBox.place(x=920, y=400)
-	textBoxRefresh()
+	quickWriteRefreshBox(autoListFile, eDisplayTextFile)
+	textBoxRefresh(filepathList, eListDisplayBox)
 
+	def instance_make_change():
+		makeChangeInLits(filepathList, eListDisplayBox)
 
+	bRefreshTextBox = Button(window, text="Сохранить", cursor="hand2", command=instance_make_change)
+	bRefreshTextBox.place(x=920, y=400)
 	'''labels'''
-
-	
-
-	
-	
 
 	lLabelForManualMode = Label(frame1, font="Arial 9", text="Система для несортированных предметов")
 	lLabelForManualMode.place(x=100, y=2)
