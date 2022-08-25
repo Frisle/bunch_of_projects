@@ -7,7 +7,7 @@ def copy_file_names():
     file = open("for_file_names.txt", "w", encoding="utf - 8")
     file.write("Список файлов в директории: %s\n" %user_input_path)
     file.close()
-
+    # comment to test
     x = os.listdir(user_input_path)
     #значение count добавляет нумерацию в конце каждой строчки line
     count = 1
