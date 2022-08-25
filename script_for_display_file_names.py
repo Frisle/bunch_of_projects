@@ -8,6 +8,7 @@ def copy_file_names():
     file.write("Список файлов в директории: %s\n" %user_input_path)
     file.close()
     # comment to test
+    # second comment to test commit
     x = os.listdir(user_input_path)
     #значение count добавляет нумерацию в конце каждой строчки line
     count = 1
