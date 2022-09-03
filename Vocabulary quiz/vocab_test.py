@@ -11,7 +11,7 @@ import keyboard
 #это программа выполняет функцию языкового квиза. скрипт основывается на txt документе содержащем словарные позиции
 #данный скрипт можно приспособить для вывода простых вопросов таким образом обращая его в вопрос-ответный квиз
 
-#messagebox.showinfo("Good day pumpkin!", "First choose text file, then pick words range and hit Activate!")
+
 
 
 
@@ -71,7 +71,7 @@ def configurate():
 		try:
 			configure.write("data_set_name: %s" %path)
 		except UnboundLocalError:
-			messagebox.showerror("There is an error :(", "Choose vocabulary set first pumpkin :)")
+			messagebox.showerror("There is an error :(", "Choose vocabulary set first")
 
 	with open (path, "r", encoding="utf - 8") as dictionary:
 		read = dictionary.readlines()
@@ -122,7 +122,7 @@ def sorting():
 			start_count = int(cWords_quontity_start.get())
 			stop_count = int(cWords_quontity_stop.get())
 		except ValueError:
-			messagebox.showerror("There is an error :(", "Choose words range first honey bunny :)")
+			messagebox.showerror("There is an error :(", "Choose words range first")
 
 
 		#loop очищает строки от новой строки, знака тире, и пробелов во второй части под-листа
@@ -142,7 +142,7 @@ def sorting():
 
 	two_component_list = [list(a) for a in zip(sourse_clean_words, output_clean_words)]
 	if len(read[start_count:stop_count]) == 0:
-		messagebox.showerror("Input error", "Start or stop numbers are bigger or smaller than requared honey :)")
+		messagebox.showerror("Input error", "Start or stop numbers are bigger or smaller than requared")
 		return
 	#print("Words in this exercise: %s\n" %len(read[start_count:stop_count]))
 	return two_component_list, sourse_clean_words, output_clean_words, words_count
@@ -183,7 +183,7 @@ def start_quiz():
 				llable_for_annouce.configure(text = "This is the right answer!\nGood job honey!")
 				score += 1
 			else:
-				llable_for_annouce.configure(text = "Sorry sweet pie, but it is false.\nRight answer is: {}\nBut your answer is {}".format(call[2][finde_index], eEntry_answer.get()))
+				llable_for_annouce.configure(text = "Sorry, but it is false.\nRight answer is: {}\nBut your answer is {}".format(call[2][finde_index], eEntry_answer.get()))
 				lLable_for_question.configure(background="red")
 				
 			
@@ -202,22 +202,22 @@ def start_quiz():
 			bButton_for_answer.wait_variable(button_pressed)
 
 			if eEntry_answer.get() in call[1][finde_index] and len(eEntry_answer.get()) > 1:
-				llable_for_annouce.configure(text = "This is the right answer!\nGood job honey!")
+				llable_for_annouce.configure(text = "This is the right answer!\nGood job!")
 				lLable_for_question.configure(background="green")
 				score += 1
 			else:
-				llable_for_annouce.configure(text = "Sorry sweet pie, but it is false.\nRight answer is: {}\nBut your answer is {}".format(call[1][finde_index], eEntry_answer.get()))
+				llable_for_annouce.configure(text = "Sorry, but it is false.\nRight answer is: {}\nBut your answer is {}".format(call[1][finde_index], eEntry_answer.get()))
 				lLable_for_question.configure(background="red")
 				
 	
 
 		
 	if score == call[3]:
-		messagebox.showinfo("Result", "Result: {} out of {}! Great job my sweet pie!\n".format(score, call[3]))
+		messagebox.showinfo("Result", "Result: {} out of {}! Great job!\n".format(score, call[3]))
 	elif call[3] > score:
-		messagebox.showinfo("Result", "Result: {} out of {}! Dont you worry my sweet pie, you will succeed just keep trying!\n".format(score, call[3]))
+		messagebox.showinfo("Result", "Result: {} out of {}! Dont you worry, you will succeed just keep trying!\n".format(score, call[3]))
 	elif call[3] - score == 1:
-		messagebox.showinfo("Result", "Result: {} out of {}! Almost got it sweet pie! Keep on gooing!\n".format(score, call[3]))
+		messagebox.showinfo("Result", "Result: {} out of {}! Almost got it! Keep on gooing!\n".format(score, call[3]))
 	#lLable_for_indicate_start.configure(text="") 
 
 	interface_flush()
