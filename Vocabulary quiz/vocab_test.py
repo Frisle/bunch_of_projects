@@ -191,9 +191,9 @@ def start_quiz():
 	if score == call[3]:
 		messagebox.showinfo("Result", "Result: {} out of {}! Great job my sweet pie!\n".format(score, call[3]))
 	elif call[3] > score:
-		messagebox.showinfo("Result", "Result: {} out of {}! Dont you worry my sweet pie, you will succeed just keep trying!\n".format(score, call[3]))
+		messagebox.showinfo("Result", "Result: {} out of {}! Dont you worry, you will succeed just keep trying!\n".format(score, call[3]))
 	elif call[3] - score == 1:
-		messagebox.showinfo("Result", "Result: {} out of {}! Almost got it sweet pie! Keep on gooing!\n".format(score, call[3]))
+		messagebox.showinfo("Result", "Result: {} out of {}! Almost got it! Keep on going!\n".format(score, call[3]))
 	# lLable_for_indicate_start.configure(text="")
 
 	interface_flush()

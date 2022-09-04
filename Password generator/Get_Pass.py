@@ -7,7 +7,7 @@ from tkinter import messagebox
 from tkinter.ttk import *
 from shutil import copyfile
 import getpass
-from tooltip import CreateToolTip, ToolTip
+from tooltip import CreateToolTip
 
 window = Tk()
 window.title("Генератор паролей. Версия 1.0")
@@ -30,7 +30,7 @@ name = getpass.getuser()
 
 
 try:
-	os.mkdir("C:\\Users\\%s\\AppData\\Roaming\\Get_pass" %name)
+	os.mkdir("C:\\Users\\%s\\AppData\\Roaming\\Get_pass" % name)
 except FileExistsError:
 	pass
 
@@ -41,8 +41,8 @@ icon = PhotoImage(file="assets\\button_resize.png")
 eDisplayTextFile = Text(window, width=70, wrap=WORD, font='Arial 10', height=10)
 eDisplayTextFile.place(x=1, y=200)
 
-scroll = Scrollbar( command=eDisplayTextFile.yview)
-scroll.place(x = 490, y = 200, height = 165)
+scroll = Scrollbar(command=eDisplayTextFile.yview)
+scroll.place(x=490, y=200, height=165)
 eDisplayTextFile.config(yscrollcommand=scroll.set)
 
 eEntryLogin = Entry(window)
@@ -50,11 +50,10 @@ eEntryLogin.place(x=290, y=11, width=80)
 CreateToolTip(eEntryLogin, text="Поле для логина (без пробелов)")
 
 comboSymbolsQuont = Combobox(window)
-comboSymbolsQuont['values'] = (4,5,6,7,8,9,10,11,12,14,16,18,20)
+comboSymbolsQuont['values'] = (4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20)
 comboSymbolsQuont.current(8)
 comboSymbolsQuont.place(x=240, y=11, width=40)
-CreateToolTip(comboSymbolsQuont, text="Желаемое количество символов\n"
-										"(Рекомендуется не менee 12)")
+CreateToolTip(comboSymbolsQuont, text="Желаемое количество символов\n""(Рекомендуется не меньше 12)")
 
 frame1 = Frame(window, relief="groove", borderwidth=10, width=500, height=35)
 frame1.pack(padx=30, pady=150)
@@ -63,10 +62,7 @@ lLabelForSearched.pack()
 
 
 def main():
-    
-	
-
-	def randomEngine():	
+	def random_engine():
 		timeAddition = time.localtime() #добавление временной метки
 		timeString = time.strftime("%m/%d/%Y, %H:%M:%S", timeAddition)
 		listNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
@@ -110,9 +106,9 @@ def main():
 				for line in stringList:
 					if userInput in line:
 						count += 1
-						ind = stringList.index(line) # хранит индекс элемента строки выбранного пользователем
+						ind = stringList.index(line)  # хранит индекс элемента строки выбранного пользователем
 			if count == 1:
-				def insideFunc():# функция заменяет требуемую строку на новую
+				def insideFunc():  # функция заменяет требуемую строку на новую
 					# открытие текстового файла
 					passwordFile = open(filepath,"w", encoding='utf-8')
 					# привязка индекса к новой строке
@@ -133,7 +129,7 @@ def main():
 				writeOneFile()
 		writeInFile()
 		main()
-	bButtonPassGeneration = Button(window, text="Генерация", cursor="hand2", command=randomEngine)
+	bButtonPassGeneration = Button(window, text="Генерация", cursor="hand2", command=random_engine)
 	bButtonPassGeneration.place(x=1, y=10, width=105)
 	
 
@@ -147,19 +143,19 @@ def main():
 	eEntryServiceName.place(x=150, y=11, width=86)
 	CreateToolTip(eEntryServiceName, text="Поле для ввода названия сервиса (без пробелов)")
 
-	
+
 	serviceList = []
 	with open(filepath, 'r', encoding="utf-8") as passwordFile:
 			tempList = []
-			for x in passwordFile:
-				tempList.append(x.split())
-			for y in tempList:
-				password = y[0]
+			for line in passwordFile:
+				tempList.append(line.split())
+			for item in tempList:
+				password = item[0]
 				serviceList.append(password)
 				serviceList.sort()
 				eEntryServiceName['values'] = (serviceList)
 				cPassList['values'] = (serviceList)
-	
+
 	
 	def searchThrough():
 		tempList = []
@@ -258,10 +254,10 @@ except Exception:
 	pass
 
 bButtonForBackUp = Button(window, text = "Бэкап", width=15, command=backing_up)
-bButtonForBackUp.place(x = 410, y = 70)
+bButtonForBackUp.place(x=410, y=70)
 
-lLableForModTime = Label(window, text=" ", font= "arial 8")
-lLableForModTime.place(x = 250, y = 130)
+lLableForModTime = Label(window, text=" ", font="arial 8")
+lLableForModTime.place(x=250, y=130)
 
 
 # дополнительная копия метода отображает время изменения при запуске
