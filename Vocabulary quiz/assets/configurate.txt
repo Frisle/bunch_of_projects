@@ -1,1 +1,1 @@
-data_set_name: 
+data_set_name: C:\Users\wda61\Documents\GitHub\bunch_of_projects\Vocabulary quiz\assets/english_words.txt
